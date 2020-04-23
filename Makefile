@@ -1,5 +1,8 @@
 # Makefile for QEMU.
 
+QEMU_CFLAGS += -g -O0
+CFLAGS += -g -O0
+
 # Always point to the root of the build tree (needs GNU make).
 BUILD_DIR=$(CURDIR)
 

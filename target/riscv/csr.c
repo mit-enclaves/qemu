@@ -20,6 +20,7 @@
 #include "qemu/osdep.h"
 #include "qemu/log.h"
 #include "cpu.h"
+#include "trng.h"
 #include "qemu/main-loop.h"
 #include "exec/exec-all.h"
 
@@ -666,6 +667,7 @@ static int write_satp(CPURISCVState *env, int csrno, target_ulong val)
     if (!riscv_feature(env, RISCV_FEATURE_MMU)) {
         return 0;
     }
+    fprintf(stderr, "satp <= %08lx\n", val);
     if (env->priv_ver <= PRIV_VERSION_1_09_1 && (val ^ env->sptbr)) {
         tlb_flush(CPU(riscv_env_get_cpu(env)));
         env->sptbr = val & (((target_ulong)
@@ -707,6 +709,225 @@ static int write_pmpaddr(CPURISCVState *env, int csrno, target_ulong val)
 }
 
 #endif
+
+// <SANCTUM>
+  /* Sanctum Core Configuration */
+
+  static int read_mevbase(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mevbase;
+      return 0;
+  }
+
+  static int write_mevbase(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mevbase = val;
+      fprintf(stderr, "mevbase <= %08lx\n", val);
+      return 0;
+  }
+
+  static int read_mevmask(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mevmask;
+      return 0;
+  }
+
+  static int write_mevmask(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mevmask = val;
+      fprintf(stderr, "mevmask <= %08lx\n", val);
+      return 0;
+  }
+
+  static int read_meatp(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->meatp;
+      return 0;
+  }
+
+  static int write_meatp(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      tlb_flush(CPU(riscv_env_get_cpu(env)));
+      fprintf(stderr, "meatp <= %08lx\n", val);
+      env->meatp = val;
+      return 0;
+  }
+
+  static int read_mmrbm(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mmrbm;
+      return 0;
+  }
+
+  static int write_mmrbm(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mmrbm = val;
+      fprintf(stderr, "mmrbm <= %08lx\n", val);
+      return 0;
+  }
+
+  static int read_memrbm(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->memrbm;
+      return 0;
+  }
+
+  static int write_memrbm(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->memrbm = val;
+      fprintf(stderr, "memrbm <= %08lx\n", val);
+      return 0;
+  }
+
+  static int read_mparbase(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mparbase;
+      return 0;
+  }
+
+  static int write_mparbase(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mparbase = val;
+      fprintf(stderr, "mparbase <= %08lx\n", val);
+      return 0;
+  }
+
+  static int read_mparmask(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mparmask;
+      return 0;
+  }
+
+  static int write_mparmask(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mparmask = val;
+      fprintf(stderr, "mparmask <= %08lx\n", val);
+      return 0;
+  }
+
+  static int read_meparbase(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->meparbase;
+      return 0;
+  }
+
+  static int write_meparbase(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->meparbase = val;
+      fprintf(stderr, "meparbase <= %08lx\n", val);
+      return 0;
+  }
+
+  static int read_meparmask(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->meparmask;
+      return 0;
+  }
+
+  static int write_meparmask(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->meparmask = val;
+      fprintf(stderr, "meparmask <= %08lx\n", val);
+      return 0;
+  }
+
+  /* TRNG */
+  static int read_trng(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+     *val = trng();
+     return 0;
+  }
+
+  static int read_tagscratch0(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->tagscratch0;
+      return 0;
+  }
+  static int read_tagscratch1(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->tagscratch1;
+      return 0;
+  }
+  static int read_tagscratch2(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->tagscratch2;
+      return 0;
+  }
+  static int read_tagscratch3(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->tagscratch3;
+      return 0;
+  }
+  static int read_tagscratch4(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->tagscratch4;
+      return 0;
+  }
+  static int read_tagscratch5(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->tagscratch5;
+      return 0;
+  }
+  static int read_tagscratch6(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->tagscratch6;
+      return 0;
+  }
+  static int read_tagscratch7(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->tagscratch7;
+      return 0;
+  }
+
+  static int write_tagscratch0(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->tagscratch0 = val;
+      fprintf(stderr, "tagscratch0 <= %08lx\n", val);
+      return 0;
+  }
+  static int write_tagscratch1(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->tagscratch1 = val;
+      fprintf(stderr, "tagscratch1 <= %08lx\n", val);
+      return 0;
+  }
+  static int write_tagscratch2(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->tagscratch2 = val;
+      fprintf(stderr, "tagscratch2 <= %08lx\n", val);
+      return 0;
+  }
+  static int write_tagscratch3(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->tagscratch3 = val;
+      fprintf(stderr, "tagscratch3 <= %08lx\n", val);
+      return 0;
+  }
+  static int write_tagscratch4(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->tagscratch4 = val;
+      fprintf(stderr, "tagscratch4 <= %08lx\n", val);
+      return 0;
+  }
+  static int write_tagscratch5(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->tagscratch5 = val;
+      fprintf(stderr, "tagscratch5 <= %08lx\n", val);
+      return 0;
+  }
+  static int write_tagscratch6(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->tagscratch6 = val;
+      fprintf(stderr, "tagscratch6 <= %08lx\n", val);
+      return 0;
+  }
+  static int write_tagscratch7(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->tagscratch7 = val;
+      fprintf(stderr, "tagscratch7 <= %08lx\n", val);
+      return 0;
+  }
+// <SANCTUM>
 
 /*
  * riscv_csrrw - read and/or update control and status register
@@ -851,6 +1072,26 @@ static riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
     [CSR_PMPCFG0  ... CSR_PMPADDR9] =  { pmp,   read_pmpcfg,  write_pmpcfg   },
     [CSR_PMPADDR0 ... CSR_PMPADDR15] = { pmp,   read_pmpaddr, write_pmpaddr  },
 
+    /* Sanctum Core Configuration */
+    [CSR_MEVBASE] =             { any,  read_mevbase,     write_mevbase      },
+    [CSR_MEVMASK] =             { any,  read_mevmask,     write_mevmask      },
+    [CSR_MEATP] =               { any,  read_meatp,       write_meatp        },
+    [CSR_MMRBM] =               { any,  read_mmrbm,       write_mmrbm        },
+    [CSR_MEMRBM] =              { any,  read_memrbm,      write_memrbm       },
+    [CSR_MPARBASE] =            { any,  read_mparbase,    write_mparbase     },
+    [CSR_MPARMASK] =            { any,  read_mparmask,    write_mparmask     },
+    [CSR_MEPARBASE] =           { any,  read_meparbase,   write_meparbase    },
+    [CSR_MEPARMASK] =           { any,  read_meparmask,   write_meparmask    },
+
+    [CSR_TAGSCRATCH0] =         { any,  read_tagscratch0, write_tagscratch0  },
+    [CSR_TAGSCRATCH1] =         { any,  read_tagscratch1, write_tagscratch1  },
+    [CSR_TAGSCRATCH2] =         { any,  read_tagscratch2, write_tagscratch2  },
+    [CSR_TAGSCRATCH3] =         { any,  read_tagscratch3, write_tagscratch3  },
+    [CSR_TAGSCRATCH4] =         { any,  read_tagscratch4, write_tagscratch4  },
+    [CSR_TAGSCRATCH5] =         { any,  read_tagscratch5, write_tagscratch5  },
+    [CSR_TAGSCRATCH6] =         { any,  read_tagscratch6, write_tagscratch6  },
+    [CSR_TAGSCRATCH7] =         { any,  read_tagscratch7, write_tagscratch7  },
+
     /* Performance Counters */
     [CSR_HPMCOUNTER3   ... CSR_HPMCOUNTER31] =    { ctr,  read_zero          },
     [CSR_MHPMCOUNTER3  ... CSR_MHPMCOUNTER31] =   { any,  read_zero          },
@@ -859,5 +1100,8 @@ static riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
     [CSR_HPMCOUNTER3H  ... CSR_HPMCOUNTER31H] =   { ctr,  read_zero          },
     [CSR_MHPMCOUNTER3H ... CSR_MHPMCOUNTER31H] =  { any,  read_zero          },
 #endif
+    /* TRNG */
+    [CSR_TRNG] =                { any,   read_trng,                          },
+
 #endif /* !CONFIG_USER_ONLY */
 };
