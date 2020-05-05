@@ -180,8 +180,24 @@ static int get_physical_address(CPURISCVState *env, hwaddr *physical,
     int levels, ptidxbits, ptesize, vm, sum;
     int mxr = get_field(env->mstatus, MSTATUS_MXR);
 
+
+    // <SANCTUM>
+    target_ulong mrbm    = 0xFFFFFFFFFFFFFFFF;
+    target_ulong parbase = 0xFFFFFFFFFFFFFFFF;
+    target_ulong parmask = 0x0000000000000000;
+    // </SANCTUM>
+
     if (env->priv_ver >= PRIV_VERSION_1_10_0) {
-        base = get_field(env->satp, SATP_PPN) << PGSHIFT;
+        // <SANCTUM>
+          //base = get_field(env->satp, SATP_PPN) << PGSHIFT;
+          bool is_enclave_walk = ((addr & env->mevmask) == env->mevbase);
+          base = is_enclave_walk ? ( get_field(env->meatp, SATP_PPN) << PGSHIFT )
+                                 : ( get_field(env->satp, SATP_PPN) << PGSHIFT );
+          mrbm = is_enclave_walk ? env->memrbm : env->mmrbm;
+          parbase = is_enclave_walk ? env->meparbase : env->mparbase;
+          parmask = is_enclave_walk ? env->meparmask : env->mparmask;
+        // </SANCTUM>
+
         sum = get_field(env->mstatus, MSTATUS_SUM);
         vm = get_field(env->satp, SATP_MODE);
         switch (vm) {
@@ -252,6 +268,34 @@ restart:
         target_ulong pte = ldq_phys(cs->as, pte_addr);
 #endif
         target_ulong ppn = pte >> PTE_PPN_SHIFT;
+
+        // <SANCTUM>
+          // Check protected address region
+          if ( ((ppn << PGSHIFT) & parmask) == parbase ) {
+            return TRANSLATE_FAIL;
+          }
+          // Check region permission, using address bits [30:25]
+          // If this is a giga page (level == 0), ensure *all* relevant region permission bits are set.
+          // A bit of a hack: our enclave-capable machine has a 2GB memory
+
+          // Due to hacks on hacks on hack emulator is only defined for a machine with 2GB DRAM and 64 "regions" for enclave isolation.
+          // Memory size is asserted in hw/riscv/sanctum.c asserts that 1). Memory size is 2GB. 2). TARGET_RISCV64 3). PGSHIFT == 12
+
+          if ( (i == 0) && (pte & PTE_V) && (pte & (PTE_R | PTE_W | PTE_X)) ) { // This is a valid giga page, which spans multiple regions. This is a special case.
+            if ( ((ppn << PGSHIFT) == 0x80000000) && (0!=((~mrbm) & 0x00000000FFFFFFFF))) { // bottom giga page
+              return TRANSLATE_FAIL;
+            }
+
+            if ( ((ppn << PGSHIFT) == 0xC0000000) && (0!=((~mrbm) & 0xFFFFFFFF00000000))) { // top giga page
+              return TRANSLATE_FAIL;
+            }
+            // NOTE: enclave permissions are not enforced outisde DRAM
+          } else { // This may be a mega or regular page
+            if ( ( (1ULL<<(((ppn << PGSHIFT) >> 25)&0x3F)) & mrbm ) == 0) {
+              return TRANSLATE_FAIL;
+            }
+          }
+        // </SANCTUM>
 
         if (!(pte & PTE_V)) {
             /* Invalid PTE */

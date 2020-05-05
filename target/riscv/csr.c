@@ -20,6 +20,7 @@
 #include "qemu/osdep.h"
 #include "qemu/log.h"
 #include "cpu.h"
+#include "trng.h"
 #include "qemu/main-loop.h"
 #include "exec/exec-all.h"
 
@@ -779,6 +780,126 @@ static int write_pmpaddr(CPURISCVState *env, int csrno, target_ulong val)
 
 #endif
 
+// <SANCTUM>
+  /* Sanctum Core Configuration */
+
+  static int read_mevbase(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mevbase;
+      return 0;
+  }
+
+  static int write_mevbase(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mevbase = val;
+      return 0;
+  }
+
+  static int read_mevmask(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mevmask;
+      return 0;
+  }
+
+  static int write_mevmask(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mevmask = val;
+      return 0;
+  }
+
+  static int read_meatp(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->meatp;
+      return 0;
+  }
+
+  static int write_meatp(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      tlb_flush(env_cpu(env));
+      env->meatp = val;
+      return 0;
+  }
+
+  static int read_mmrbm(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mmrbm;
+      return 0;
+  }
+
+  static int write_mmrbm(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mmrbm = val;
+      return 0;
+  }
+
+  static int read_memrbm(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->memrbm;
+      return 0;
+  }
+
+  static int write_memrbm(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->memrbm = val;
+      return 0;
+  }
+
+  static int read_mparbase(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mparbase;
+      return 0;
+  }
+
+  static int write_mparbase(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mparbase = val;
+      return 0;
+  }
+
+  static int read_mparmask(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mparmask;
+      return 0;
+  }
+
+  static int write_mparmask(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mparmask = val;
+      return 0;
+  }
+
+  static int read_meparbase(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->meparbase;
+      return 0;
+  }
+
+  static int write_meparbase(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->meparbase = val;
+      return 0;
+  }
+
+  static int read_meparmask(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->meparmask;
+      return 0;
+  }
+
+  static int write_meparmask(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->meparmask = val;
+      return 0;
+  }
+
+  /* TRNG */
+  static int read_trng(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+     *val = trng();
+     return 0;
+  }
+// <SANCTUM>
+
 /*
  * riscv_csrrw - read and/or update control and status register
  *
@@ -946,6 +1067,17 @@ static riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
     [CSR_PMPCFG0  ... CSR_PMPADDR9] =  { pmp,   read_pmpcfg,  write_pmpcfg   },
     [CSR_PMPADDR0 ... CSR_PMPADDR15] = { pmp,   read_pmpaddr, write_pmpaddr  },
 
+    /* Sanctum Core Configuration */
+    [CSR_MEVBASE] =             { any,  read_mevbase,     write_mevbase      },
+    [CSR_MEVMASK] =             { any,  read_mevmask,     write_mevmask      },
+    [CSR_MEATP] =               { any,  read_meatp,       write_meatp        },
+    [CSR_MMRBM] =               { any,  read_mmrbm,       write_mmrbm        },
+    [CSR_MEMRBM] =              { any,  read_memrbm,      write_memrbm       },
+    [CSR_MPARBASE] =            { any,  read_mparbase,    write_mparbase     },
+    [CSR_MPARMASK] =            { any,  read_mparmask,    write_mparmask     },
+    [CSR_MEPARBASE] =           { any,  read_meparbase,   write_meparbase    },
+    [CSR_MEPARMASK] =           { any,  read_meparmask,   write_meparmask    },
+
     /* Performance Counters */
     [CSR_HPMCOUNTER3   ... CSR_HPMCOUNTER31] =    { ctr,  read_zero          },
     [CSR_MHPMCOUNTER3  ... CSR_MHPMCOUNTER31] =   { any,  read_zero          },
@@ -954,5 +1086,8 @@ static riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
     [CSR_HPMCOUNTER3H  ... CSR_HPMCOUNTER31H] =   { ctr,  read_zero          },
     [CSR_MHPMCOUNTER3H ... CSR_MHPMCOUNTER31H] =  { any,  read_zero          },
 #endif
+    /* TRNG */
+    [CSR_TRNG] =                { any,   read_trng,                          },
+
 #endif /* !CONFIG_USER_ONLY */
 };
