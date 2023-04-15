@@ -780,6 +780,21 @@ static int write_pmpaddr(CPURISCVState *env, int csrno, target_ulong val)
 
 #endif
 
+// <RISCY_OO>
+
+  static int read_stats(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->stats;
+      return 0;
+  }
+
+  static int write_stats(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->stats = val;
+      return 0;
+  }
+// </RISCY_OO>
+
 // <SANCTUM>
   /* Sanctum Core Configuration */
 
@@ -891,7 +906,31 @@ static int write_pmpaddr(CPURISCVState *env, int csrno, target_ulong val)
       env->meparmask = val;
       return 0;
   }
+  
+  static int read_mflush(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mflush;
+      return 0;
+  }
+  
+  static int write_mflush(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mflush = val;
+      return 0;
+  }
 
+  static int read_mspec(CPURISCVState *env, int csrno, target_ulong *val)
+  {
+      *val = env->mspec;
+      return 0;
+  }
+  
+  static int write_mspec(CPURISCVState *env, int csrno, target_ulong val)
+  {
+      env->mspec = val;
+      return 0;
+  }
+  
   /* TRNG */
   static int read_trng(CPURISCVState *env, int csrno, target_ulong *val)
   {
@@ -1067,6 +1106,9 @@ static riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
     [CSR_PMPCFG0  ... CSR_PMPADDR9] =  { pmp,   read_pmpcfg,  write_pmpcfg   },
     [CSR_PMPADDR0 ... CSR_PMPADDR15] = { pmp,   read_pmpaddr, write_pmpaddr  },
 
+    /* Riscy-OO Stat Collection */
+    [CSR_STATS] =               { any,  read_stats,       write_stats        },
+
     /* Sanctum Core Configuration */
     [CSR_MEVBASE] =             { any,  read_mevbase,     write_mevbase      },
     [CSR_MEVMASK] =             { any,  read_mevmask,     write_mevmask      },
@@ -1077,6 +1119,8 @@ static riscv_csr_operations csr_ops[CSR_TABLE_SIZE] = {
     [CSR_MPARMASK] =            { any,  read_mparmask,    write_mparmask     },
     [CSR_MEPARBASE] =           { any,  read_meparbase,   write_meparbase    },
     [CSR_MEPARMASK] =           { any,  read_meparmask,   write_meparmask    },
+    [CSR_MFLUSH] =              { any,  read_mflush,      write_mflush       },
+    [CSR_MSPEC] =               { any,  read_mspec,       write_mspec        },
 
     /* Performance Counters */
     [CSR_HPMCOUNTER3   ... CSR_HPMCOUNTER31] =    { ctr,  read_zero          },

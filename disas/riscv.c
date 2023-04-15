@@ -1236,6 +1236,9 @@ static const char *csr_name(int csrno)
     case 0x07b0: return "dcsr";
     case 0x07b1: return "dpc";
     case 0x07b2: return "dscratch";
+    // <RISCY_OOO>
+    case 0x0801: return "stats";
+    // </RISCY_OOO>
     // <SANCTUM>
       case 0x07c0: return "mevbase";
       case 0x07c1: return "mevmask";
@@ -1246,6 +1249,8 @@ static const char *csr_name(int csrno)
       case 0x07c6: return "mparmask";
       case 0x07c7: return "meparbase";
       case 0x07c8: return "meparmask";
+      case 0x07c9: return "mflush";
+      case 0x07ca: return "mspec";
     // </SANCTUM>
     case 0x0b00: return "mcycle";
     case 0x0b01: return "mtime";

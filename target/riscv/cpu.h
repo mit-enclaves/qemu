@@ -157,6 +157,10 @@ struct CPURISCVState {
     target_ulong sscratch;
     target_ulong mscratch;
 
+    // <RISCY_OO>
+    target_ulong stats;
+    // <\RISCY_OO>
+
     // <SANCTUM>
       // ## The core state referenced by various CSRs (registers) introduced by Sanctum is declared here.
       // ### Enclave virtual base and mask
@@ -191,6 +195,10 @@ struct CPURISCVState {
       target_ulong mparmask;
       target_ulong meparbase;
       target_ulong meparmask;
+
+      // ### Protection side channels
+      target_ulong mflush;
+      target_ulong mspec;
     // </SANCTUM>
 
     /* temporary htif regs */
