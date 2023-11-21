@@ -35,6 +35,7 @@
 #include "hw/sysbus.h"
 #include "target/riscv/cpu.h"
 #include "hw/riscv/puf.h"
+#include "hw/riscv/zero_device.h"
 #include "hw/riscv/riscv_htif.h"
 #include "hw/riscv/riscv_hart.h"
 #include "hw/riscv/sifive_clint.h"
@@ -51,11 +52,13 @@ static const struct MemmapEntry {
     hwaddr base;
     hwaddr size;
 } sanctum_memmap[] = {
-    [SANCTUM_MROM] =     {     0x1000,    0x11000 },
-    [SANCTUM_PUF] =      {   0x200000,       0x20 },
-    [SANCTUM_ELFLD] =    {  0x1000000,     0x1000 },
-    [SANCTUM_CLINT] =    {  0x2000000,    0xc0000 },
-    [SANCTUM_DRAM] =     { 0x80000000, 0x80000000 },
+    [SANCTUM_MROM] =        {      0x1000,    0x11000 },
+    [SANCTUM_PUF] =         {    0x200000,       0x20 },
+    [SANCTUM_ELFLD] =       {   0x1000000,     0x1000 },
+    [SANCTUM_CLINT] =       {   0x2000000,    0xc0000 },
+    [SANCTUM_DRAM] =        {  0x80000000, 0x80000000 },
+    [SANCTUM_ZERO_DEVICE] = { 0x100000000, 0x80000000 },
+    [SANCTUM_LLC_CTRL] =            { 0x200000000,        0x8 },
 };
 
 static uint64_t load_kernel(const char *kernel_filename)
@@ -180,6 +183,7 @@ static void sanctum_board_init(MachineState *machine)
     MemoryRegion *main_mem = g_new(MemoryRegion, 1);
     MemoryRegion *mask_rom = g_new(MemoryRegion, 1);
     MemoryRegion *elfld_rom = g_new(MemoryRegion, 1);
+    MemoryRegion *llc_controller = g_new(MemoryRegion, 1);
     int i;
 
     /* Ensure the requested configuration is legal for Sanctum */
@@ -202,7 +206,7 @@ static void sanctum_board_init(MachineState *machine)
     memory_region_init_ram(main_mem, NULL, "riscv.sanctum.ram",
                            machine->ram_size, &error_fatal);
     memory_region_add_subregion(system_memory, memmap[SANCTUM_DRAM].base,
-        main_mem);
+                                main_mem);
 
     /* create device tree */
     create_fdt(s, memmap, machine->ram_size, machine->kernel_cmdline);
@@ -212,6 +216,15 @@ static void sanctum_board_init(MachineState *machine)
                            memmap[SANCTUM_MROM].size, &error_fatal);
     memory_region_add_subregion(system_memory, memmap[SANCTUM_MROM].base,
                                 mask_rom);
+
+    /* zero device */
+    zero_device_mm_init(system_memory, mask_rom, memmap[SANCTUM_ZERO_DEVICE].base, memmap[SANCTUM_ZERO_DEVICE].size);
+
+    /* LLC Partition Controller */
+    memory_region_init_ram(llc_controller, NULL, "riscv.sanctum.llc_controler",
+                           memmap[SANCTUM_LLC_CTRL].size, &error_fatal);
+    memory_region_add_subregion(system_memory, memmap[SANCTUM_LLC_CTRL].base,
+                                llc_controller); 
 
     if (machine->kernel_filename) {
         load_kernel(machine->kernel_filename);
