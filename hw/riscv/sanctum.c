@@ -57,7 +57,7 @@ static const struct MemmapEntry {
     [SANCTUM_ELFLD] =       {   0x1000000,     0x1000 },
     [SANCTUM_CLINT] =       {   0x2000000,    0xc0000 },
     [SANCTUM_DRAM] =        {  0x80000000, 0x80000000 },
-    [SANCTUM_ZERO_DEVICE] = { 0x100000000, 0x80000000 },
+    [SANCTUM_ZERO_DEVICE] = { 0x180000000, 0x80000000 },
     [SANCTUM_LLC_CTRL] =            { 0x200000000,        0x8 },
 };
 
